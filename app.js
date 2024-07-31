@@ -26,16 +26,16 @@ app.engine('ejs', ejsMate);
 app.use(express.static(path.join(__dirname, "/public")));
 
 //app.get("/testlisting", async (req, res)  => {
-//    let sampleListing = new Listing({
-//        title: "My New Villa",
-//        description: "By the beach",
-//        price : 1200,
-//        location: "Calangute, Goa",
-//        country : "India"
-//    });
-//    await sampleListing.save();
-//    console.log("Sample was saved");
-//    res.send("successful testing");
+//   let sampleListing = new Listing({
+//       title: "My New Villa",
+//       description: "By the beach",
+//       price : 1200,
+//       location: "Calangute, Goa",
+//       country : "India"
+//   });
+//  await sampleListing.save();
+//   console.log("Sample was saved");
+//   res.send("successful testing");
 //});
 
 app.get("/", (req, res) => {
