@@ -125,7 +125,7 @@ app.delete("/listings/:id",
 
 //Reviews
 //Post route
-app.post("/listings/:id/reviews", validateReview,
+app.post("/listings/:id/reviews", validateReview ,
     wrapAsync(async(req, res) => {
     let listing = await Listing.findById(req.params.id);
     let newReview = new Review(req.body.review);
