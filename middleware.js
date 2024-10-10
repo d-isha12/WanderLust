@@ -25,6 +25,15 @@ module.exports.validateReview = (req, res, next) => {
     }
 };
 
+module.exports.validateListing = (req, res, next) => {
+    let { error } = listingSchema.validate(req.body);
+    if (error) {
+        let errMsg = error.details.map((el) => el.message).join(",");
+    } else {
+        next();
+    }
+};
+
 module.exports.saveRedirectUrl = (req, res, next) => {
     if(req.session.redirectUrl){
         res.locals.redirectUrl = req.session.redirectUrl;
