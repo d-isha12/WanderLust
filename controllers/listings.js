@@ -35,7 +35,6 @@ module.exports.createListing = async (req, res, next) => {
     let filename = req.file.filename;
     let listing = req.body.listing;
     const newListing = new Listing(listing);
-    console.log(req.user);
     newListing.owner = req.user._id; // store current user id to add default ownername
     newListing.image = {url, filename};
     newListing.geometry = response.body.features[0].geometry;
