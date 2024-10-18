@@ -1,7 +1,7 @@
 <%- layout("/layouts/boilerplate") %>
 <script>
     const  mapToken = "<%= process.env.MAP_TOKEN %>";
-    const coordinates = "<%- JSON.stringify(listing.geometry.coordinates )%>";
+    let listing = <%- JSON.stringify(listing)%>;
 </script>
 
 <body>
@@ -58,9 +58,10 @@
                 <button class="btn btn-outline-dark">Submit</button>
             </form>
             <% } %> 
-            <hr>
             
-            <% if (listing.reviews.lenght > 0) { %>
+            
+            <% if (listing.reviews.length > 0) { %>
+            <hr>
             <div class="row">
             <p><b>All Reviews</b></p>
             <% for( review of listing.reviews ) { %>
