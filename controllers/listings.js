@@ -20,7 +20,7 @@ module.exports.showListing = async (req, res) => {
         req.flash("error", "Listing you requested does not exist!");
         res.redirect("/listings");
     }
-    console.log(listing);
+    // console.log(listing);
     res.render("listings/show.ejs", {listing});
 }
 
@@ -76,3 +76,40 @@ module.exports.destroyListing = async (req, res) => {
     req.flash("success", "Listing Deleted!");
     res.redirect("/listings");
 }
+
+//search
+module.exports.searchListings = async (req, res) => { 
+    let { location } = req.query;
+    console.log(location);
+    if (!location) {
+        req.flash("error", "Please enter a location to search.");
+        return res.redirect("/listings");
+    }
+    
+    const listings = await Listing.find({ location: { $regex: new RegExp(location, "i") } });
+
+    if (listings.length === 0) {
+        req.flash("error", "No listings found for the entered location.");
+        return res.redirect("/listings");
+    }
+
+    res.render("listings/index.ejs", { allListings: listings });  // Fix variable name
+};
+
+
+module.exports.renderTerms =  (req, res) => {
+    res.render("./listings/terms.ejs");
+}
+
+module.exports.renderPrivacy =  (req, res) => {
+    res.render("./listings/privacy.ejs");
+}
+
+module.exports.renderContact =  (req, res) => {
+    res.render("./listings/contact.ejs");
+}
+
+module.exports.renderCancelRefund =  (req, res) => {
+    res.render("./listings/cancel&refund.ejs");
+}
+

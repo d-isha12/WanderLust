@@ -30,10 +30,13 @@
         <div class="navbar-nav">
           <a class="nav-link" href="/listings">Explore</a>
         </div>
-        <div class="navbar-nav ms-auto">
-          <form class="d-flex" role="search">
-            <input class="form-control me-2 search-inp" type="search" placeholder="Search destinations">
-            <button class="btn search-btn" type="submit"><i class="fa-solid fa-magnifying-glass"></i>Search</button>
+         <!-- //search -->
+         <div class="navbar-nav ms-auto">
+          <form class="d-flex" role="search" action="/listings/search" method="GET">
+              <input class="form-control me-2 search-inp" type="search" name="location" placeholder="Search destinations" required>
+              <button class="btn search-btn" type="submit">
+                  <i class="fa-solid fa-magnifying-glass"></i> Search
+              </button>
           </form>
         </div>
         <div class="navbar-nav ms-auto">
@@ -45,6 +48,18 @@
           <% if (currentUser) { %>
             <a class="nav-link" href="/logout"><b>Log out</b></a>
           <% } %>
+        </div>
+        <div class="navbar-nav">
+          <a class="nav-link" href="/listings/terms">Terms</a>
+        </div>
+        <div class="navbar-nav">
+          <a class="nav-link" href="/listings/privacy">Privacy</a>
+        </div>
+        <div class="navbar-nav">
+          <a class="nav-link" href="/listings/contact">Contact us</a>
+        </div>
+        <div class="navbar-nav">
+          <a class="nav-link" href="/listings/cancel">Cancellation & Refund</a>
         </div>
       </div>
     </div>

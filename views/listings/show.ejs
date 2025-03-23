@@ -1,6 +1,7 @@
 <%- layout("/layouts/boilerplate") %>
 <script>
     const  mapToken = "<%= process.env.MAP_TOKEN %>";
+    // remove below clm to display map
     let listing = <%- JSON.stringify(listing)%>;
 </script>
 
@@ -20,6 +21,7 @@
                     <p class="card-text"> <%= listing.country %> </p>     
                 </div>
             </div>
+
             <% if (currentUser && listing.owner._id.equals(currentUser._id)) { %>
             <div class="btns mb-3">
                 <a href="/listings/<%= listing._id %>/edit" class="btn btn-dark edit-btn col-1 offset-3">Edit</a>
@@ -28,10 +30,16 @@
                 </form> 
             </div>      
             <% } %>   
+
+            <div class="col-8 mt-1 offset-3 mb-3">
+                <% if (currentUser) { %> 
+                    <button class="btn btn-success btn-lg" type="button">Book Now</button>
+                <% } %> 
+            </div>
         
         <div class="col-8 mt-1 offset-3 mb-3">
-            <hr>
             <% if (currentUser) { %> 
+            <hr>
             <h4>Leave a Review</h4>
             <form action="/listings/<%= listing.id %>/reviews" method="post" novalidate class="needs-validation">
                 <div class="mb-3 mt- 3">
