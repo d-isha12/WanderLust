@@ -15,15 +15,19 @@ const flash = require("connect-flash");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const User = require("./models/user.js");
+
 // these file are not in use in aap.js file
 // const { listingSchema, reviewSchema } = require("./schema.js");
 // const Review = require("./models/review.js");
 // const Listing = require("./models/listing.js");
 // const wrapAsync = require("./utils/wrapAsync.js");
+const cors = require("cors");
 
 const listingRouter = require("./routes/listing.js");
 const reviewRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
+const paymentRouter = require("./routes/payment.js");
+const bookingRouter = require("./routes/booking.js");
 
 const dbUrl = process.env.ATLASDB_URL;
 
@@ -43,6 +47,10 @@ app.use(express.urlencoded({extended: true}));
 app.use(methodOverride("_method"));
 app.engine('ejs', ejsMate);
 app.use(express.static(path.join(__dirname, "/public")));
+
+//payment
+app.use(express.json());
+app.use(cors());
 
 const store = MongoStore.create({
     mongoUrl: dbUrl,
@@ -91,6 +99,13 @@ app.use((req, res, next) => {
     next();
 });
 
+//paymet
+app.use((req, res, next) => {
+    res.locals.RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
+    next();
+});
+
+
 // app.get("/demo", async(req, res) => {
 //     let fakeUser = new User({
 //         email: "student@gmail.com",
@@ -109,6 +124,10 @@ app.use("/listings", listingRouter);
 app.use("/listings/:id/reviews", reviewRouter);
 app.use("/", userRouter);
 
+//payment
+app.use("/api", paymentRouter);
+app.use("/", bookingRouter); 
+
 app.all("*", (req, res, next) => {
     next(new ExpressError(404, "Page Not Found!"));
 });
@@ -118,7 +137,6 @@ app.use((err, req, res, next) => {
     res.status(statusCode).render("error.ejs", {message});
     //res.status(statusCode).send(message);
 });
-
 
 app.listen(8080, () => {
     console.log("Server is running on port 8080");

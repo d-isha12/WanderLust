@@ -1,0 +1,8 @@
+<%- layout("/layouts/boilerplate") %>
+
+<h1>Proceed to Payment</h1>
+<p>Pay for your booking at <%= listing.title %></p>
+<form action="/api/createOrder" method="POST">
+    <input type="hidden" name="listingId" value="<%= listing._id %>">
+    <button type="submit">Pay Now</button>
+</form>

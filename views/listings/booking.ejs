@@ -1,0 +1,101 @@
+<%- layout("/layouts/boilerplate") %>
+
+<body>
+    <div class="row">
+        <div class="col-8 offset-2">
+            <h3>Book: <%= listing.title %></h3>
+            <form id="bookingForm" action="/listings/<%= listing._id %>/book" method="post" novalidate class="needs-validation">
+                <div class="mb-3">
+                    <label class="form-label">Customer Name</label>
+                    <input type="text" name="booking[customerName]" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Contact</label>
+                    <input type="text" name="booking[contact]" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="booking[email]" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Booking Date</label>
+                    <input type="date" name="booking[bookingDate]" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Number of Days</label>
+                    <input type="number" name="booking[numberOfDays]" class="form-control" min="1" required>
+                </div>
+                <button type="button" class="btn btn-dark" id="rzp-button">Proceed to Payment</button>
+            </form>
+        </div>
+    </div>
+</body>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    document.getElementById("rzp-button").onclick = async function () {
+        try {
+            let listingId = "<%= listing._id %>";
+            let priceInRupees = <%- JSON.stringify(listing.price) %>;  // Price in rupees
+
+            const response = await fetch("/api/createOrder", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: listingId, amount: priceInRupees })
+            });
+
+            const order = await response.json();
+            if (!order.id) {
+                alert("Error creating order");
+                return;
+            }
+
+            const options = {
+                key: "<%= RAZORPAY_KEY_ID %>",
+                amount: order.amount,  // Razorpay expects amount in paise
+                currency: "INR",
+                name: "WanderAbode",
+                description: "<%= listing.title %>",
+                order_id: order.id,
+                handler: function (response) {
+                    handlePaymentSuccess(response, order.id);
+                },
+                theme: { color: "#3399cc" },
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.open();
+            rzp.on("payment.failed", function(response){
+                alert("Payment failed: " + response.error.description);
+            });
+        } catch (error) {
+            console.error("Error:", error);
+            alert("Something went wrong. Please try again.");
+        }
+    };
+
+    async function handlePaymentSuccess(response, orderId) {
+        try {
+            const verifyRes = await fetch("/api/verifyPayment", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    order_id: orderId,
+                    payment_id: response.razorpay_payment_id,
+                    signature: response.razorpay_signature
+                })
+            });
+
+            const verifyData = await verifyRes.json();
+            if (verifyData.success) {
+                alert("Payment Successful! Your booking is confirmed.");
+                window.location.href = "/success";
+            } else {
+                alert("Payment verification failed. Please try again.");
+            }
+        } catch (error) {
+            console.error("Verification error:", error);
+            alert("Error verifying payment. Please try again.");
+        }
+    }
+</script>
