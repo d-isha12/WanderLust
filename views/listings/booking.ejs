@@ -31,71 +31,75 @@
     </div>
 </body>
 
+<!-- Payment Section -->
+
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
 <script>
-    document.getElementById("rzp-button").onclick = async function () {
-        try {
-            let listingId = "<%= listing._id %>";
-            let priceInRupees = <%- JSON.stringify(listing.price) %>;  // Price in rupees
+    document.getElementById("rzp-button").onclick = async function(e) {
+        e.preventDefault();
 
-            const response = await fetch("/api/createOrder", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id: listingId, amount: priceInRupees })
-            });
-
-            const order = await response.json();
-            if (!order.id) {
-                alert("Error creating order");
-                return;
-            }
-
-            const options = {
-                key: "<%= RAZORPAY_KEY_ID %>",
-                amount: order.amount,  // Razorpay expects amount in paise
-                currency: "INR",
-                name: "WanderAbode",
-                description: "<%= listing.title %>",
-                order_id: order.id,
-                handler: function (response) {
-                    handlePaymentSuccess(response, order.id);
-                },
-                theme: { color: "#3399cc" },
-            };
-
-            const rzp = new Razorpay(options);
-            rzp.open();
-            rzp.on("payment.failed", function(response){
-                alert("Payment failed: " + response.error.description);
-            });
-        } catch (error) {
-            console.error("Error:", error);
-            alert("Something went wrong. Please try again.");
+        // Get number of days from input field
+        const numberOfDays = document.querySelector('input[name="booking[numberOfDays]"]').value;
+        if (!numberOfDays || numberOfDays <= 0) {
+            alert("Please enter a valid number of days!");
+            return;
         }
-    };
 
-    async function handlePaymentSuccess(response, orderId) {
-        try {
-            const verifyRes = await fetch("/api/verifyPayment", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    order_id: orderId,
-                    payment_id: response.razorpay_payment_id,
-                    signature: response.razorpay_signature
+        // Get the listing price
+        const listingPrice = <%= listing.price %>;
+
+        // Calculate total amount in paisa (Razorpay accepts in paisa)
+        const amount = listingPrice * numberOfDays ;
+
+        // Fetch Razorpay Order ID from server
+        const response = await fetch("/api/createOrder", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ amount })
+        });
+
+        const order = await response.json();
+        if (!order.id) {
+            alert("Failed to initiate payment. Try again!");
+            return;
+        }
+
+        var options = {
+            "key": "<%= process.env.RAZORPAY_KEY_ID %>", 
+            "amount": amount, 
+            "currency": "INR",
+            "name": "Wanderlust Booking",
+            "description": "Payment for your booking",
+            "order_id": order.id, 
+            "handler": function (response){
+                fetch("/api/verifyPayment", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        order_id: order.id,
+                        payment_id: response.razorpay_payment_id,
+                        signature: response.razorpay_signature
+                    })
                 })
-            });
-
-            const verifyData = await verifyRes.json();
-            if (verifyData.success) {
-                alert("Payment Successful! Your booking is confirmed.");
-                window.location.href = "/success";
-            } else {
-                alert("Payment verification failed. Please try again.");
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) {
+                        alert("Payment Successful!");
+                        window.location.href = "/listings";
+                    } else {
+                        console.log(data);
+                        alert("Payment Failed!");
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+            },
+            "theme": {
+                "color": "#3399cc"
             }
-        } catch (error) {
-            console.error("Verification error:", error);
-            alert("Error verifying payment. Please try again.");
-        }
-    }
+        };
+
+        var rzp1 = new Razorpay(options);
+        rzp1.open();
+    };
 </script>

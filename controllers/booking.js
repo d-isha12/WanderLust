@@ -8,7 +8,7 @@ module.exports.renderBookingForm = async (req, res) => {
             req.flash("error", "Listing not found");
             return res.redirect("/listings");
         }
-        res.render("listings/booking", { listing });
+        res.render("listings/booking", { listing, numberOfDays: 1 }); // Default to 1 day
     } catch (error) {
         console.error(error);
         req.flash("error", "Something went wrong");
@@ -41,7 +41,7 @@ module.exports.createBooking = async (req, res) => {
 
         await newBooking.save();
         req.flash("success", "Booking request submitted! Proceed to payment.");
-        res.redirect(`/listings/${listing._id}/book/payment`);
+        res.render("listings/booking", { listing, numberOfDays });
     } catch (error) {
         console.error(error);
         req.flash("error", "Something went wrong. Please try again.");

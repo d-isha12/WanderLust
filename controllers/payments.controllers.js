@@ -5,54 +5,48 @@ require("dotenv").config();
 const razorpayInstance = createRazorpayInstance();
 
 exports.createOrder = async (req, res) => {
-    const { id, amount } = req.body;
+    const { amount } = req.body;
 
     const options = {
-        amount: amount * 100,
+        amount: amount * 100,  // Razorpay expects amount in paisa
         currency: "INR",
-        receipt:"receipt_order_1",
+        receipt: "receipt_order_" + Date.now(),
     };
 
     try {
         razorpayInstance.orders.create(options, (err, order) => {
-            if(err) {
-                return res.status(500).json({
-                    success: false,
-                    message: "Something went wrong"
-                });
+            if (err) {
+                return res.status(500).json({ success: false, message: "Something went wrong" });
             }
             return res.status(200).json(order);
         });
     } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Something went wrong"
-        });
+        return res.status(500).json({ success: false, message: "Something went wrong" });
     }
 };
 
 
-exports.verifyPayment = async (req, res) => {
-    console.log("Received payment data:", req.body);
-    const { order_id, payment_id, signature } = req.body;
+exports.verifyPayment = async (req) => {
+    try {
+        const { order_id, payment_id, signature } = req.body;
 
-    const secret = process.env.RAZORPAY_KEY_SECRET;
+        // Ensure the required fields are available
+        if (!order_id || !payment_id || !signature) {
+            return { success: false, message: "Missing required fields" };
+        }
 
-    const hmac = crypto.createHmac("sha256", secret);
+        const secret = process.env.RAZORPAY_KEY_SECRET;
+        const hmac = crypto.createHmac("sha256", secret);
+        hmac.update(order_id + "|" + payment_id);
+        const generatedSignature = hmac.digest("hex");
 
-    hmac.update(order_id + "|" + payment_id);
-
-    const generatedSignature = hmac.digest("hex");
-
-    if(generatedSignature === signature){
-        return res.status(200).json({
-            success: true,
-            message: "Payment verified",
-        });
-    } else {
-        return res.status(400).json({
-            success: false,
-            message: "Payment not verified",
-        });
+        if (generatedSignature === signature) {
+            return { success: true, message: "Payment verified" };
+        } else {
+            return { success: false, message: "Signature mismatch" };
+        }
+    } catch (error) {
+        console.error("Error during payment verification:", error);
+        return { success: false, message: "Internal server error" };
     }
-}
+};
