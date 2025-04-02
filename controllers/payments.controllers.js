@@ -29,13 +29,14 @@ exports.createOrder = async (req, res) => {
 exports.verifyPayment = async (req) => {
     try {
         const { order_id, payment_id, signature } = req.body;
-
+        console.log(req.body);
         // Ensure the required fields are available
         if (!order_id || !payment_id || !signature) {
             return { success: false, message: "Missing required fields" };
         }
 
-        const secret = process.env.RAZORPAY_KEY_SECRET;
+        // const secret = process.env.RAZORPAY_KEY_SECRET;
+        const secret = "DXwkRSODjMho2CZyZO9ty2GV";
         const hmac = crypto.createHmac("sha256", secret);
         hmac.update(order_id + "|" + payment_id);
         const generatedSignature = hmac.digest("hex");
